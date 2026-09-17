@@ -1,0 +1,12 @@
+services:
+  water-sentinel:
+    build: .
+    container_name: jalvigyan-water-sentinel
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_PATH=/app/data/water_sentinel.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
