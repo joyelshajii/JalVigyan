@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { MeterReading } from '../types';
-import { Database, Plus, Upload, Download, Check, AlertCircle, Calendar, Hash, Tag } from 'lucide-react';
+import {
+  Plus,
+  Upload,
+  Download,
+  Check,
+  AlertCircle,
+  Calendar,
+  Search,
+  Filter,
+  ShieldCheck,
+  Binary,
+} from 'lucide-react';
 
 interface MeterLoggerProps {
   readings: MeterReading[];
@@ -25,11 +36,14 @@ export const MeterLogger: React.FC<MeterLoggerProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterTag, setFilterTag] = useState('ALL');
 
   // Live calculation of delta
   const numericVal = parseFloat(meterValue) || 0;
   const convertedValue = unit === 'm3' ? numericVal * 1000 : numericVal;
   const delta = convertedValue > latestReading.meter_value ? convertedValue - latestReading.meter_value : 0;
+  const isRollback = meterValue !== '' && convertedValue < latestReading.meter_value;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +57,7 @@ export const MeterLogger: React.FC<MeterLoggerProps> = ({
 
     if (convertedValue < latestReading.meter_value) {
       setErrorMsg(
-        `Reading cannot be lower than the previous recorded reading (${latestReading.meter_value.toLocaleString()} L). Verify the physical meter dial.`
+        `Dial reading cannot be lower than the previous recorded cumulative value (${latestReading.meter_value.toLocaleString()} L). Verify mechanical dials.`
       );
       return;
     }
@@ -51,14 +65,24 @@ export const MeterLogger: React.FC<MeterLoggerProps> = ({
     setIsSubmitting(true);
     try {
       await onAddReading(convertedValue, timestamp, tag);
-      setSuccessMsg(`Reading of ${convertedValue.toLocaleString()} L recorded successfully (+${delta.toLocaleString()} L delta).`);
+      setSuccessMsg(`Reading of ${convertedValue.toLocaleString()} L committed successfully (+${delta.toLocaleString()} L delta).`);
       setMeterValue('');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save meter reading.');
+      setErrorMsg(err.message || 'Failed to record meter reading.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const filteredReadings = useMemo(() => {
+    return readings.filter((r) => {
+      const matchesSearch =
+        r.tag.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.meter_value.toString().includes(searchTerm);
+      const matchesTag = filterTag === 'ALL' || r.tag === filterTag;
+      return matchesSearch && matchesTag;
+    });
+  }, [readings, searchTerm, filterTag]);
 
   const downloadSampleCSV = () => {
     const csvContent =
@@ -81,132 +105,162 @@ export const MeterLogger: React.FC<MeterLoggerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-bold text-slate-900">Meter Reading Logger</h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Record dial observations directly from mechanical or digital pulse meters, or batch-import telemetry from municipal CSV files.
-        </p>
+      {/* Header */}
+      <div className="pb-2 border-b border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold text-zinc-950 tracking-tight">Meter Telemetry Ledger</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Log cumulative readings from analog mechanical dials or pulse telemetry, with rollback protection and batch CSV support.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <button
+            onClick={downloadSampleCSV}
+            className="btn-secondary py-1 px-2.5 flex items-center gap-1.5"
+            title="Download CSV Template"
+          >
+            <Download className="w-3.5 h-3.5 text-zinc-500" />
+            <span>CSV Template</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Form Column */}
-        <div className="card-base p-5 lg:col-span-1 h-fit space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <span className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-sky-600" /> Log Single Reading
-            </span>
-            <span className="text-xs text-slate-500">
-              Last: <strong className="text-slate-800">{latestReading.meter_value.toLocaleString()} L</strong>
-            </span>
-          </div>
-
-          {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-700 flex items-start gap-2">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            <div>
-              <label className="block font-medium text-slate-700 mb-1 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" /> Date and Time
-              </label>
-              <input
-                type="datetime-local"
-                value={timestamp}
-                onChange={(e) => setTimestamp(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded text-xs text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-sky-500"
-                required
-              />
+        {/* Left Column: Reading Input Terminal */}
+        <div className="space-y-4 lg:col-span-1">
+          <div className="panel p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <span className="text-xs font-semibold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Plus className="w-3.5 h-3.5 text-sky-600" /> Log Meter Reading
+              </span>
+              <span className="text-[11px] font-mono text-zinc-500">
+                Latest: <strong className="text-zinc-900 font-semibold">{latestReading.meter_value.toLocaleString()} L</strong>
+              </span>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="font-medium text-slate-700 flex items-center gap-1.5">
-                  <Hash className="w-3.5 h-3.5 text-slate-400" /> Cumulative Meter Reading
-                </label>
-                <div className="flex items-center gap-1 text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => setUnit('liters')}
-                    className={`px-1.5 py-0.5 rounded ${unit === 'liters' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
-                  >
-                    Liters
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUnit('m3')}
-                    className={`px-1.5 py-0.5 rounded ${unit === 'm3' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
-                  >
-                    m³ (kL)
-                  </button>
-                </div>
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
               </div>
-              <input
-                type="number"
-                step="any"
-                placeholder={unit === 'liters' ? 'e.g. 159450' : 'e.g. 159.45'}
-                value={meterValue}
-                onChange={(e) => setMeterValue(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded text-xs text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-sky-500 font-mono"
-                required
-              />
-              {convertedValue > latestReading.meter_value && (
-                <div className="mt-1.5 p-2 bg-sky-50 border border-sky-200 rounded text-[11px] text-sky-800 flex items-center justify-between">
-                  <span>Incremental Volume:</span>
-                  <span className="font-bold">+{delta.toLocaleString()} Liters</span>
+            )}
+
+            {successMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-700 flex items-start gap-2">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-medium text-zinc-700 mb-1 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-zinc-400" /> Date & Timestamp
+                </label>
+                <input
+                  type="datetime-local"
+                  value={timestamp}
+                  onChange={(e) => setTimestamp(e.target.value)}
+                  className="form-input font-mono text-xs"
+                  required
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-medium text-zinc-700">Cumulative Dial Value</label>
+                  <div className="flex items-center gap-1 text-[10px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setUnit('liters')}
+                      className={`px-1.5 py-0.5 rounded ${
+                        unit === 'liters' ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-600'
+                      }`}
+                    >
+                      Liters
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUnit('m3')}
+                      className={`px-1.5 py-0.5 rounded ${
+                        unit === 'm3' ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-600'
+                      }`}
+                    >
+                      m³ (kL)
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div>
-              <label className="block font-medium text-slate-700 mb-1 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-slate-400" /> Observation Tag
-              </label>
-              <select
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded text-xs text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-sky-500"
+                <input
+                  type="number"
+                  step="any"
+                  placeholder={unit === 'liters' ? 'e.g. 159450' : 'e.g. 159.45'}
+                  value={meterValue}
+                  onChange={(e) => setMeterValue(e.target.value)}
+                  className={`form-input font-mono text-sm font-semibold tabular-nums ${
+                    isRollback ? 'border-rose-500 focus:ring-rose-500' : ''
+                  }`}
+                  required
+                />
+
+                {/* Instant Dynamic Validation Pill */}
+                {meterValue !== '' && (
+                  <div className="mt-2 text-[11px] font-mono">
+                    {isRollback ? (
+                      <div className="p-2 bg-rose-50 border border-rose-200 rounded text-rose-800 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Rollback error: Lower than previous ({latestReading.meter_value} L)</span>
+                      </div>
+                    ) : delta > 0 ? (
+                      <div className="p-2 bg-sky-50 border border-sky-200 rounded text-sky-900 flex items-center justify-between">
+                        <span>Calculated Volume Delta:</span>
+                        <strong className="text-sky-800 font-bold">+{delta.toLocaleString()} Liters</strong>
+                      </div>
+                    ) : (
+                      <span className="text-zinc-400">Zero incremental change</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-medium text-zinc-700 mb-1">Observation Tag</label>
+                <select
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                  className="form-input text-xs"
+                >
+                  <option value="routine_check">Routine Daily Log</option>
+                  <option value="morning_reading">Morning 08:00 AM Quiescent Check</option>
+                  <option value="night_quiescent">Night 01:00 AM Baseline Log</option>
+                  <option value="sunday_laundry">High Consumption (Laundry / Wash)</option>
+                  <option value="guest_visit">Guests / Event Influx</option>
+                  <option value="post_repair">Post-Repair Plumbing Verification</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting || isRollback}
+                className="w-full btn-primary py-2 text-xs font-semibold"
               >
-                <option value="routine_check">Routine Daily Log</option>
-                <option value="morning_reading">Morning 08:00 AM Reading</option>
-                <option value="night_quiescent">Quiescent 01:00 AM Reading</option>
-                <option value="sunday_laundry">High Use (Laundry / Deep Clean)</option>
-                <option value="guest_visit">Guests / Event</option>
-                <option value="post_repair">Post-Plumbing Repair Check</option>
-              </select>
-            </div>
+                {isSubmitting ? 'Verifying & Saving...' : 'Commit Reading to Database'}
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full btn-primary mt-2"
-            >
-              {isSubmitting ? 'Recording...' : 'Commit Reading to Database'}
-            </button>
-          </form>
+            {/* Batch CSV Section */}
+            <div className="pt-4 border-t border-zinc-100 space-y-2.5">
+              <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+                <Upload className="w-3.5 h-3.5 text-zinc-500" /> Batch Ingestion
+              </span>
+              <p className="text-[11px] text-zinc-500 leading-normal">
+                Directly import historical telemetry from utility CSV spreadsheets.
+              </p>
 
-          {/* Batch CSV Section */}
-          <div className="pt-4 border-t border-slate-200 space-y-3">
-            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5 text-slate-500" /> Batch CSV Import
-            </span>
-            <p className="text-[11px] text-slate-500">
-              Upload municipal logger records or bulk spreadsheet readings.
-            </p>
-
-            <div className="flex items-center gap-2">
-              <label className="flex-1 btn-secondary cursor-pointer text-center text-xs py-1.5">
-                <span>Select CSV</span>
+              <label className="btn-secondary w-full cursor-pointer py-1.5 text-xs text-center flex items-center justify-center gap-1.5">
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload CSV File</span>
                 <input
                   type="file"
                   accept=".csv"
@@ -214,56 +268,84 @@ export const MeterLogger: React.FC<MeterLoggerProps> = ({
                   className="hidden"
                 />
               </label>
-              <button
-                type="button"
-                onClick={downloadSampleCSV}
-                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs flex items-center gap-1"
-                title="Download sample template"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Template</span>
-              </button>
             </div>
+          </div>
+
+          <div className="p-3.5 bg-zinc-100/60 rounded border border-zinc-200 text-xs text-zinc-600 space-y-1">
+            <span className="font-semibold text-zinc-800 flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Integrity Assurance
+            </span>
+            <p className="text-[11px] leading-relaxed">
+              Every committed reading recalculates rolling Hampel MAD medians and triggers Minimum Night Flow threshold evaluations instantly.
+            </p>
           </div>
         </div>
 
-        {/* Table Column */}
-        <div className="card-base p-5 lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        {/* Right Column: Historical Audit Ledger */}
+        <div className="panel p-5 lg:col-span-2 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-100 gap-3">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Database className="w-4 h-4 text-sky-600" /> Meter Reading Audit Log
+              <h2 className="text-sm font-semibold text-zinc-950 flex items-center gap-2">
+                <Binary className="w-4 h-4 text-sky-600" /> Meter Reading Audit Ledger
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Chronological list of recorded cumulative readings and derived consumption rates.
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Chronological ledger of recorded readings and derived flow rates.
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-500">{readings.length} entries</span>
+
+            {/* Filter & Search */}
+            <div className="flex items-center gap-2 text-xs">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search value or tag..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 pr-3 py-1 bg-white border border-zinc-300 rounded text-xs focus:outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-zinc-400" />
+                <select
+                  value={filterTag}
+                  onChange={(e) => setFilterTag(e.target.value)}
+                  className="py-1 px-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none focus:border-sky-500"
+                >
+                  <option value="ALL">All Tags</option>
+                  <option value="routine">routine</option>
+                  <option value="sunday_laundry">sunday_laundry</option>
+                  <option value="csv_import">csv_import</option>
+                  <option value="manual_entry">manual_entry</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 rounded">
+          <div className="overflow-x-auto border border-zinc-200 rounded-xs">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
-                  <th className="py-2.5 px-3">Date & Time</th>
-                  <th className="py-2.5 px-3">Meter Value</th>
-                  <th className="py-2.5 px-3">Delta Volume</th>
-                  <th className="py-2.5 px-3">Implied Rate</th>
+                <tr className="bg-zinc-50 text-zinc-600 font-semibold border-b border-zinc-200">
+                  <th className="py-2.5 px-3">Timestamp</th>
+                  <th className="py-2.5 px-3 text-right">Cumulative Value</th>
+                  <th className="py-2.5 px-3 text-right">Incremental Delta</th>
+                  <th className="py-2.5 px-3 text-right">Derived Rate</th>
                   <th className="py-2.5 px-3">Tag</th>
-                  <th className="py-2.5 px-3">Type</th>
+                  <th className="py-2.5 px-3 text-right">Channel</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 font-mono">
-                {readings.length === 0 ? (
+              <tbody className="divide-y divide-zinc-200/80 font-mono tabular-nums">
+                {filteredReadings.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 font-sans">
-                      No meter readings recorded yet.
+                    <td colSpan={6} className="py-10 text-center text-zinc-400 font-sans">
+                      No matching meter records found.
                     </td>
                   </tr>
                 ) : (
-                  readings.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2 px-3 text-slate-700">
+                  filteredReadings.map((r) => (
+                    <tr key={r.id} className="hover:bg-zinc-50/80 transition-colors">
+                      <td className="py-2 px-3 text-zinc-700">
                         {new Date(r.timestamp).toLocaleDateString('en-IN', {
                           day: '2-digit',
                           month: 'short',
@@ -272,28 +354,33 @@ export const MeterLogger: React.FC<MeterLoggerProps> = ({
                           minute: '2-digit',
                         })}
                       </td>
-                      <td className="py-2 px-3 font-semibold text-slate-900">
+                      <td className="py-2 px-3 font-semibold text-zinc-950 text-right">
                         {r.meter_value.toLocaleString()} L
                       </td>
-                      <td className="py-2 px-3 text-sky-700">
+                      <td className="py-2 px-3 text-sky-700 text-right">
                         +{r.delta_liters.toLocaleString()} L
                       </td>
-                      <td className="py-2 px-3 text-slate-600">
+                      <td className="py-2 px-3 text-zinc-500 text-right">
                         {r.flow_rate_lph.toFixed(1)} L/h
                       </td>
                       <td className="py-2 px-3">
-                        <span className="font-sans text-[11px] px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200">
+                        <span className="font-sans text-[10px] px-1.5 py-0.5 bg-zinc-100 text-zinc-700 rounded border border-zinc-200 font-medium">
                           {r.tag}
                         </span>
                       </td>
-                      <td className="py-2 px-3 text-slate-500 font-sans text-[11px]">
-                        {r.is_manual ? 'Manual Dial' : 'Pulse / Telemetry'}
+                      <td className="py-2 px-3 text-zinc-400 font-sans text-[11px] text-right">
+                        {r.is_manual ? 'Manual Dial' : 'Pulse Telemetry'}
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
+            <span>Showing {filteredReadings.length} of {readings.length} total recorded entries</span>
+            <span className="font-mono text-[11px]">Audit Engine: Live Synced</span>
           </div>
         </div>
       </div>

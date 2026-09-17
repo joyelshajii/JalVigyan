@@ -1,5 +1,14 @@
 import React from 'react';
-import { Droplet, Activity, Database, Users, AlertTriangle, Presentation, ShieldCheck, ExternalLink } from 'lucide-react';
+import {
+  Droplet,
+  LayoutDashboard,
+  Binary,
+  Users2,
+  AlertCircle,
+  Presentation,
+  Shield,
+  ExternalLink,
+} from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -16,121 +25,118 @@ export const Navbar: React.FC<NavbarProps> = ({
   isBackendOnline,
   onOpenDeployGuide,
 }) => {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Activity },
-    { id: 'logger', label: 'Meter Logger', icon: Database },
-    { id: 'cohorts', label: 'Cohort Benchmark', icon: Users },
+  const navTabs = [
+    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'logger', label: 'Meter Ledger', icon: Binary },
+    { id: 'cohorts', label: 'Cohort Benchmarks', icon: Users2 },
     {
       id: 'leak-suite',
       label: 'Leak Test Suite',
-      icon: AlertTriangle,
-      badge: 'Evaluation Harness',
+      icon: AlertCircle,
+      badge: 'Test Harness',
     },
     { id: 'presentation', label: 'Pitch Deck (8 Slides)', icon: Presentation },
   ];
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+    <header className="bg-white border-b border-zinc-200/80 sticky top-0 z-40">
+      {/* Top Application Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <div className="w-9 h-9 bg-sky-600 rounded flex items-center justify-center text-white shadow-sm">
-              <Droplet className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-white font-semibold text-base tracking-tight">JalVigyan</span>
-                <span className="text-xs font-mono px-1.5 py-0.5 bg-slate-800 text-sky-400 border border-slate-700 rounded">
-                  SC-06 Sentinel
-                </span>
+        <div className="flex items-center justify-between h-14 border-b border-zinc-100">
+          {/* Brand & Connection Context */}
+          <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-2 cursor-pointer select-none"
+              onClick={() => setActiveTab('dashboard')}
+            >
+              <div className="w-7 h-7 rounded bg-sky-600 text-white flex items-center justify-center shadow-xs">
+                <Droplet className="w-4 h-4" />
               </div>
-              <p className="text-xs text-slate-400 font-normal">Household Water Monitoring & Anomaly Sentinel</p>
+              <span className="font-semibold text-zinc-950 text-sm tracking-tight">JalVigyan</span>
+            </div>
+
+            <div className="h-4 w-px bg-zinc-200 hidden sm:block"></div>
+
+            <div className="hidden sm:flex items-center gap-2 text-xs text-zinc-500">
+              <span className="font-medium text-zinc-700">SC-06 Sentinel</span>
+              <span>/</span>
+              <span className="font-mono text-zinc-400 text-[11px]">KWA Consumer # 4821</span>
             </div>
           </div>
 
-          {/* Nav Items */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'bg-slate-800 text-sky-400 border border-slate-700'
-                      : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <span className="text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded">
-                      {item.badge}
-                    </span>
-                  )}
-                  {item.id === 'dashboard' && activeAlertCount > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Right Status & Tools */}
-          <div className="flex items-center gap-3">
+          {/* Right Status & Meta Actions */}
+          <div className="flex items-center gap-2.5">
+            {/* Live Telemetry Heartbeat */}
             <div
-              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono border ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono border ${
                 isBackendOnline
-                  ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/80'
-                  : 'bg-slate-800 text-sky-300 border-slate-700'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-sky-50 text-sky-800 border-sky-200'
               }`}
-              title={isBackendOnline ? 'Connected to Go SQLite Backend (Port 8085)' : 'Client-Side Resilient Engine Active'}
             >
-              <span className={`w-2 h-2 rounded-full ${isBackendOnline ? 'bg-emerald-400' : 'bg-sky-400'}`}></span>
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isBackendOnline ? 'bg-emerald-500 animate-pulse' : 'bg-sky-500'
+                }`}
+              ></span>
               <span>{isBackendOnline ? 'Go API :8085' : 'Resilient Engine'}</span>
             </div>
 
             <button
               onClick={onOpenDeployGuide}
-              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
+              className="btn-secondary py-1 px-2.5 text-xs text-zinc-600 hover:text-zinc-900 flex items-center gap-1.5"
               title="Custom Domain & Deployment Guide"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span>Deploy & Domain</span>
+              <span className="hidden sm:inline">Deployment</span>
             </button>
 
             <button
               onClick={() => setActiveTab('legal')}
-              className={`p-1.5 rounded text-slate-400 hover:text-white ${activeTab === 'legal' ? 'text-sky-400 bg-slate-800' : ''}`}
-              title="Privacy Policy & Terms"
+              className={`p-1.5 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors ${
+                activeTab === 'legal' ? 'text-zinc-900 bg-zinc-100' : ''
+              }`}
+              title="Data Governance & Terms"
             >
-              <ShieldCheck className="w-5 h-5" />
+              <Shield className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Mobile Tab bar */}
-        <div className="md:hidden flex items-center justify-between border-t border-slate-800 py-2 overflow-x-auto gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
+        {/* Tab Navigation Strip */}
+        <nav className="flex items-center space-x-1 overflow-x-auto py-1 scrollbar-none" aria-label="Tabs">
+          {navTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+
             return (
               <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs whitespace-nowrap ${
-                  isActive ? 'bg-slate-800 text-sky-400 font-medium' : 'text-slate-400'
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap transition-colors relative ${
+                  isActive
+                    ? 'border-sky-600 text-sky-700 font-semibold'
+                    : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:border-zinc-300'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{item.label.split(' ')[0]}</span>
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-600' : 'text-zinc-400'}`} />
+                <span>{tab.label}</span>
+
+                {tab.id === 'leak-suite' && tab.badge && (
+                  <span className="text-[10px] font-medium font-mono px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                    {tab.badge}
+                  </span>
+                )}
+
+                {tab.id === 'dashboard' && activeAlertCount > 0 && (
+                  <span className="flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-rose-600 rounded-full">
+                    {activeAlertCount}
+                  </span>
+                )}
               </button>
             );
           })}
-        </div>
+        </nav>
       </div>
     </header>
   );

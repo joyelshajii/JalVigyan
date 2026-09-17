@@ -132,7 +132,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-zinc-900 font-sans selection:bg-sky-100 selection:text-sky-900">
       {/* Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -142,12 +142,12 @@ export const App: React.FC = () => {
         onOpenDeployGuide={() => setIsDeployGuideOpen(true)}
       />
 
-      {/* Main View Area */}
+      {/* Main Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24 space-y-3">
-            <RefreshCw className="w-8 h-8 text-sky-600 animate-spin" />
-            <p className="text-xs font-mono text-slate-500">Initializing hydraulic telemetry telemetry pipeline...</p>
+          <div className="flex flex-col items-center justify-center py-28 space-y-3">
+            <RefreshCw className="w-6 h-6 text-zinc-400 animate-spin" />
+            <span className="text-xs font-mono text-zinc-500">Initializing hydraulic telemetry pipeline...</span>
           </div>
         ) : (
           <>
@@ -199,52 +199,66 @@ export const App: React.FC = () => {
         onClose={() => setIsDeployGuideOpen(false)}
       />
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-12 py-6 text-xs text-slate-500">
+      {/* Understated Utility Footer */}
+      <footer className="bg-white border-t border-zinc-200/80 mt-12 py-5 text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-slate-900 text-white rounded flex items-center justify-center">
-              <Droplet className="w-3.5 h-3.5 text-sky-400" />
+            <div className="w-5 h-5 bg-sky-600 text-white rounded flex items-center justify-center">
+              <Droplet className="w-3 h-3" />
             </div>
-            <div>
-              <span className="font-semibold text-slate-800">JalVigyan Sentinel</span>
-              <span className="text-slate-400 ml-1.5 font-mono">SC-06 Prototype</span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-zinc-800">JalVigyan Sentinel</span>
+              <span className="text-zinc-400 text-[11px] font-mono">SC-06 Utility Prototype</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-600">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-600">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="hover:text-zinc-950 transition-colors"
+            >
+              Overview
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => setActiveTab('logger')}
+              className="hover:text-zinc-950 transition-colors"
+            >
+              Meter Ledger
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => setActiveTab('leak-suite')}
+              className="hover:text-zinc-950 transition-colors"
+            >
+              Evaluation Suite
+            </button>
+            <span>•</span>
             <button
               onClick={() => setActiveTab('presentation')}
-              className="hover:text-slate-900 transition-colors"
+              className="hover:text-zinc-950 transition-colors"
             >
-              8-Slide Presentation Deck
+              Pitch Deck
             </button>
             <span>•</span>
             <button
               onClick={() => setActiveTab('legal')}
-              className="hover:text-slate-900 transition-colors"
+              className="hover:text-zinc-950 transition-colors"
             >
-              Privacy Policy
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setActiveTab('legal')}
-              className="hover:text-slate-900 transition-colors"
-            >
-              Terms & Conditions
+              Legal & Privacy
             </button>
             <span>•</span>
             <button
               onClick={() => setIsDeployGuideOpen(true)}
-              className="hover:text-slate-900 transition-colors flex items-center gap-1"
+              className="hover:text-zinc-950 transition-colors flex items-center gap-1"
             >
-              <Globe className="w-3.5 h-3.5" />
-              <span>Domain Setup</span>
+              <Globe className="w-3 h-3" />
+              <span>Domain</span>
             </button>
           </div>
 
-          <div className="text-center sm:text-right font-mono text-[11px] text-slate-400">
-            ANAVANDI 2026 Selection Round | AJCE
+          <div className="text-center sm:text-right font-mono text-[11px] text-zinc-400">
+            Amal Jyothi College of Engineering (AJCE) • ANAVANDI 2026
           </div>
         </div>
       </footer>
