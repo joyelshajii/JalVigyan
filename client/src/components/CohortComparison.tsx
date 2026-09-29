@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Sliders,
   Check,
+  Award,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -53,7 +54,7 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
         has_garden: hasGarden,
         water_source: waterSource,
       });
-      setSaveMessage('Household profile updated. Baseline cohort statistics recalculated.');
+      setSaveMessage('Household profile updated successfully. Demographic baseline recalculated.');
     } finally {
       setIsSaving(false);
     }
@@ -61,113 +62,153 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
 
   // Synthetic cohort distribution curve for municipal ward (n = 248)
   const cohortDistribution = [
-    { range: '< 80', count: 12, label: 'Very Low (<80 L)', lpcdValue: 70 },
-    { range: '80-105', count: 38, label: 'Frugal (80-105 L)', lpcdValue: 95 },
+    { range: '< 80', count: 12, label: 'Very Frugal (<80 L)', lpcdValue: 70 },
+    { range: '80-105', count: 38, label: 'Efficient (80-105 L)', lpcdValue: 95 },
     { range: '105-130', count: 72, label: 'Standard (105-130 L)', lpcdValue: 120 },
     { range: '130-155', count: 68, label: 'CPHEEO Optimal (130-155 L)', lpcdValue: 142 },
     { range: '155-180', count: 36, label: 'Elevated (155-180 L)', lpcdValue: 168 },
-    { range: '180-220', count: 14, label: 'High (180-220 L)', lpcdValue: 200 },
+    { range: '180-220', count: 14, label: 'High Demand (180-220 L)', lpcdValue: 200 },
     { range: '> 220', count: 8, label: 'Severe Anomaly (>220 L)', lpcdValue: 250 },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-6">
       {/* Header */}
-      <div className="pb-2 border-b border-zinc-200/80">
-        <h1 className="text-lg font-semibold text-zinc-950 tracking-tight">Demographic Cohort Benchmarking</h1>
-        <p className="text-xs text-zinc-500 mt-0.5">
-          Normalizing water consumption across household occupancy and property typology against 248 municipal peers and the CPHEEO 135 LPCD standard.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Community & Cohort Benchmarks</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Normalizing consumption by family occupancy and property type against 248 municipal peers and the CPHEEO national 135 LPCD benchmark.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="badge-normal font-mono text-xs">
+            Ward Benchmark (n = 248)
+          </span>
+        </div>
       </div>
 
-      {/* Integrated Benchmark Overview Strip */}
-      <div className="panel divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/80 grid grid-cols-1 sm:grid-cols-3">
-        <div className="p-4 sm:p-5">
-          <span className="text-xs text-zinc-500 font-medium">Household Per-Capita (LPCD)</span>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-2xl font-semibold text-zinc-950 font-mono tracking-tight tabular-nums">
-              {cohortStats.user_average_lpcd.toFixed(1)}
-            </span>
-            <span className="text-xs text-zinc-500 font-medium">L/person/day</span>
+      {/* Integrated Benchmark Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="panel p-5 space-y-2 hover:border-slate-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-medium">Household Per-Capita</span>
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <Droplet className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] font-mono text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 mt-2 inline-block">
-            {cohortStats.percentile_rank}th Percentile Rank
-          </span>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
+                {cohortStats.user_average_lpcd.toFixed(1)}
+              </span>
+              <span className="text-xs text-slate-500 font-medium">L / person / day</span>
+            </div>
+            <div className="mt-2">
+              <span className="badge-normal font-mono text-xs">
+                {cohortStats.percentile_rank}th Percentile Rank
+              </span>
+            </div>
+          </div>
+          <div className="text-[11px] text-slate-400 pt-1">
+            Normal range for {household.residents} occupants
+          </div>
         </div>
 
-        <div className="p-4 sm:p-5">
-          <span className="text-xs text-zinc-500 font-medium">Matched Peer Median (n = 248)</span>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-2xl font-semibold text-zinc-950 font-mono tracking-tight tabular-nums">
-              {cohortStats.median_lpcd.toFixed(1)}
-            </span>
-            <span className="text-xs text-zinc-500 font-medium">L/person/day</span>
+        <div className="panel p-5 space-y-2 hover:border-slate-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-medium">Ward Peer Median (n = 248)</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Users2 className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] font-mono text-zinc-500 mt-2 block">
-            Interquartile (P25-P75): {cohortStats.p25_lpcd} - {cohortStats.p75_lpcd} LPCD
-          </span>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
+                {cohortStats.median_lpcd.toFixed(1)}
+              </span>
+              <span className="text-xs text-slate-500 font-medium">L / person / day</span>
+            </div>
+            <div className="mt-2 text-xs text-slate-600">
+              Interquartile: <strong>{cohortStats.p25_lpcd} - {cohortStats.p75_lpcd} LPCD</strong>
+            </div>
+          </div>
+          <div className="text-[11px] text-slate-400 pt-1">
+            Typical municipal consumption
+          </div>
         </div>
 
-        <div className="p-4 sm:p-5">
-          <span className="text-xs text-zinc-500 font-medium">CPHEEO Indian Municipal Target</span>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-2xl font-semibold text-zinc-950 font-mono tracking-tight tabular-nums">
-              {cohortStats.national_benchmark_lpcd}
-            </span>
-            <span className="text-xs text-zinc-500 font-medium">L/person/day</span>
+        <div className="panel p-5 space-y-2 hover:border-slate-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-medium">CPHEEO National Target</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Award className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-2 block">
-            Ministry of Housing & Urban Affairs
-          </span>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
+                {cohortStats.national_benchmark_lpcd}
+              </span>
+              <span className="text-xs text-slate-500 font-medium">L / person / day</span>
+            </div>
+            <div className="mt-2 text-xs text-emerald-700 font-medium">
+              Ministry of Housing & Urban Affairs
+            </div>
+          </div>
+          <div className="text-[11px] text-slate-400 pt-1">
+            Indian Municipal Guideline (135 LPCD)
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Demographic Calibration Terminal */}
         <div className="space-y-4 lg:col-span-1">
-          <div className="panel p-5 space-y-4">
-            <div className="border-b border-zinc-100 pb-3">
-              <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-sky-600" /> Demographic Calibration
+          <div className="panel p-6 space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-sky-600" /> Demographic Profile
               </h2>
-              <p className="text-[11px] text-zinc-500 mt-0.5">
-                Adjust physical household parameters to recalculate normalized expectations.
+              <p className="text-xs text-slate-500 mt-0.5">
+                Adjust household parameters to recalibrate your baseline expectations.
               </p>
             </div>
 
             {saveMessage && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-700 flex items-start gap-2">
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>{saveMessage}</span>
+                <span className="leading-relaxed">{saveMessage}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveProfile} className="space-y-4">
               <div>
-                <label className="block font-medium text-zinc-700 mb-1.5 flex items-center gap-1.5">
-                  <Users2 className="w-3.5 h-3.5 text-zinc-400" /> Permanent Occupants (Residents)
+                <label className="block text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                  <Users2 className="w-3.5 h-3.5 text-slate-400" /> Permanent Occupants
                 </label>
-                <div className="grid grid-cols-4 gap-1">
+                <div className="grid grid-cols-4 gap-1.5">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                     <button
                       key={n}
                       type="button"
                       onClick={() => setResidents(n)}
-                      className={`py-1.5 text-xs font-mono font-medium rounded border transition-colors ${
+                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${
                         residents === n
-                          ? 'bg-zinc-900 text-white border-zinc-900'
-                          : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50'
+                          ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
-                      {n} {n === 1 ? 'p' : 'ppl'}
+                      {n} {n === 1 ? 'Person' : 'People'}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block font-medium text-zinc-700 mb-1 flex items-center gap-1.5">
-                  <Home className="w-3.5 h-3.5 text-zinc-400" /> Dwelling Classification
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <Home className="w-3.5 h-3.5 text-slate-400" /> Dwelling Classification
                 </label>
                 <select
                   value={dwellingType}
@@ -181,8 +222,8 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
               </div>
 
               <div>
-                <label className="block font-medium text-zinc-700 mb-1 flex items-center gap-1.5">
-                  <Droplet className="w-3.5 h-3.5 text-zinc-400" /> Water Connection Type
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <Droplet className="w-3.5 h-3.5 text-slate-400" /> Water Connection Type
                 </label>
                 <select
                   value={waterSource}
@@ -195,38 +236,38 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
                 </select>
               </div>
 
-              <div className="pt-2 border-t border-zinc-100">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="pt-2 border-t border-slate-100">
+                <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={hasGarden}
                     onChange={(e) => setHasGarden(e.target.checked)}
-                    className="rounded border-zinc-300 text-sky-600 focus:ring-sky-500 w-4 h-4"
+                    className="rounded-md border-slate-300 text-sky-600 focus:ring-sky-500 w-4 h-4"
                   />
-                  <span className="font-medium text-zinc-700 text-xs">
+                  <span className="font-semibold text-slate-700 text-xs">
                     Garden / Yard Irrigation Area
                   </span>
                 </label>
-                <p className="text-[11px] text-zinc-500 mt-1 pl-6">
-                  Adds an empirical +15 LPCD outdoor seasonal adjustment.
+                <p className="text-[11px] text-slate-500 mt-1 pl-6.5 leading-normal">
+                  Applies an empirical +15 LPCD outdoor seasonal adjustment.
                 </p>
               </div>
 
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full btn-primary py-2 text-xs font-semibold mt-2"
+                className="w-full btn-primary py-2.5 text-xs font-semibold mt-2"
               >
                 {isSaving ? 'Recalibrating...' : 'Update Baseline Parameters'}
               </button>
             </form>
           </div>
 
-          <div className="p-3.5 bg-zinc-100/60 rounded border border-zinc-200 text-xs text-zinc-600 space-y-1">
-            <span className="font-semibold text-zinc-800 flex items-center gap-1">
-              <Scale className="w-3.5 h-3.5 text-sky-600" /> Synthesis Assessment
+          <div className="p-4 bg-slate-100/70 rounded-2xl border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+            <span className="font-bold text-slate-900 flex items-center gap-1.5">
+              <Scale className="w-4 h-4 text-sky-600" /> Synthesis Assessment
             </span>
-            <p className="text-[11px] leading-relaxed text-zinc-700">
+            <p className="text-slate-700 leading-relaxed">
               {cohortStats.comparison_summary}
             </p>
           </div>
@@ -235,27 +276,27 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
         {/* Right Column: Ward Distribution & Rationale */}
         <div className="space-y-6 lg:col-span-2">
           {/* Distribution Chart */}
-          <div className="panel p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-zinc-100 gap-2">
+          <div className="panel p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-950">
+                <h3 className="text-base font-bold text-slate-900">
                   Ward Per-Capita Consumption Distribution (n = 248)
                 </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
-                  Peer frequency across per-capita daily consumption tiers (LPCD).
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Frequency of matched peer households across daily per-capita usage brackets.
                 </p>
               </div>
-              <span className="text-xs font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+              <span className="badge-normal font-mono text-xs">
                 Your Household: {cohortStats.user_average_lpcd.toFixed(1)} LPCD
               </span>
             </div>
 
-            <div className="h-64 w-full pt-2">
+            <div className="h-72 w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={cohortDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="2 3" stroke="#f4f4f5" vertical={false} />
-                  <XAxis dataKey="range" stroke="#a1a1aa" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="range" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
                   <Tooltip
                     formatter={(val: any, _name: any, item: any) => [
                       `${val} households`,
@@ -268,7 +309,7 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
                     strokeDasharray="3 3"
                     label={{ value: 'CPHEEO Target (135)', fontSize: 10, fill: '#059669', position: 'top' }}
                   />
-                  <Bar dataKey="count" radius={[2, 2, 0, 0]}>
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {cohortDistribution.map((entry, index) => {
                       const isUserBucket =
                         (entry.range === '< 80' && cohortStats.user_average_lpcd < 80) ||
@@ -282,7 +323,7 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
                       return (
                         <Cell
                           key={`cell-${index}`}
-                          fill={isUserBucket ? '#0284c7' : '#d4d4d8'}
+                          fill={isUserBucket ? '#0284c7' : '#cbd5e1'}
                         />
                       );
                     })}
@@ -293,27 +334,27 @@ export const CohortComparison: React.FC<CohortComparisonProps> = ({
           </div>
 
           {/* Comparative Case Study: The Danger of Flat Thresholds */}
-          <div className="panel p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-zinc-950 border-b border-zinc-100 pb-2.5 flex items-center gap-2">
+          <div className="panel p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
               <Info className="w-4 h-4 text-sky-600" />
-              Mathematical Necessity of Demographic Normalization
+              Why Flat Limits Fail & Why Normalization Wins
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-rose-50/60 border border-rose-200 rounded text-zinc-800">
-                <span className="font-semibold text-rose-900 flex items-center gap-1 mb-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Pitfall of Static Thresholds
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-rose-50/70 border border-rose-200/80 rounded-2xl text-slate-800 space-y-1.5">
+                <span className="font-bold text-rose-900 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-rose-600" /> Pitfall of Static Thresholds
                 </span>
-                <p className="text-zinc-600 leading-relaxed">
-                  A flat 600 L/day alert generates persistent false alarms for a 5-person home (120 LPCD = frugal conservation), while completely missing a severe 200 L/day toilet leak in a 2-person apartment (350 L total &lt; 600 L limit, yet 175 LPCD = severe leak).
+                <p className="text-slate-600 leading-relaxed">
+                  A flat 600 L/day limit triggers persistent false alarms for a 5-person home (120 LPCD = water-conserving), while completely failing to catch a continuous 200 L/day toilet leak in a 2-person flat (350 L total &lt; 600 L limit, yet 175 LPCD = severe leak).
                 </p>
               </div>
 
-              <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded text-zinc-800">
-                <span className="font-semibold text-emerald-900 flex items-center gap-1 mb-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> JalVigyan Normalized Framework
+              <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl text-slate-800 space-y-1.5">
+                <span className="font-bold text-emerald-900 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> JalVigyan Normalized Framework
                 </span>
-                <p className="text-zinc-600 leading-relaxed">
-                  By calibrating against household occupants, property topology, and quiescent Minimum Night Flow, JalVigyan ensures that warnings are meaningful, eliminates alert fatigue, and prevents wasted water.
+                <p className="text-slate-600 leading-relaxed">
+                  By calibrating against household occupants, property typology, and quiescent Minimum Night Flow, JalVigyan ensures that warnings are meaningful, eliminates alert fatigue, and prevents wasted water.
                 </p>
               </div>
             </div>
