@@ -337,10 +337,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Metric 4: Estimated Bill */}
-        <div className="panel p-5 space-y-3 hover:border-slate-300 transition-colors">
+        <div
+          onClick={() => onNavigate('tariff')}
+          className="panel p-5 space-y-3 hover:border-sky-400 hover:shadow-sm transition-all cursor-pointer group"
+          title="Click to simulate KWA slabs & savings"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Estimated Monthly Bill</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-500 group-hover:text-sky-700 transition-colors">
+              Estimated Monthly Bill
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
               <IndianRupee className="w-4 h-4" />
             </div>
           </div>
@@ -357,8 +363,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="badge-normal">Tier 1 Slab</span>
             </div>
           </div>
-          <div className="text-[11px] text-slate-400">
-            Est. ~{Math.round(monthlyKL)} kL (cubic meters)
+          <div className="text-[11px] text-sky-600 font-medium flex items-center justify-between">
+            <span>Est. ~{Math.round(monthlyKL)} kL / mo</span>
+            <span className="group-hover:translate-x-0.5 transition-transform">Slab Sim &rarr;</span>
           </div>
         </div>
       </div>

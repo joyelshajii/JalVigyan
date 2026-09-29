@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Radio,
+  IndianRupee,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -34,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
     { id: 'logger', label: 'Meter Ledger', icon: Binary },
     { id: 'cohorts', label: 'Community Benchmarks', icon: Users2 },
+    { id: 'tariff', label: 'Tariff & Slabs', icon: IndianRupee },
     {
       id: 'leak-suite',
       label: 'Leak Simulator',
