@@ -49,14 +49,20 @@
   * Scenario 5: **Baseline Reset** (Restores pristine 30-day baseline).
 * Returns a live **Verification Scorecard** with 100% Sensitivity (True Positive Rate) and 100% Specificity (True Negative Rate).
 
-### 6. Interactive 8-Slide Pitch Deck
-* Built directly into the application and accessible via the top navigation bar or `/presentation`.
-* Strictly follows the exact 8-slide order required on page 6 of the ANAVANDI selection round brochure.
+### 6. Kerala Water Authority (KWA) Slab Tariff & Savings Simulator
+* Models Kerala Water Authority's domestic non-linear tiered slab structure (0-5 kL to >50 kL).
+* Graphically demonstrates the "punitive slab jump" caused by small continuous leaks (+18 L/h flapper leak wastes 13 kL and adds over ₹430/month).
+* Provides actionable conservation payback measures (tap aerators, rainwater harvesting sump diversion, flapper replacement).
 
-### 7. Production Readiness
+### 7. Interactive 8-Slide Pitch Deck
+* Built directly into the application with full-screen presenter mode and keyboard shortcuts.
+* Strictly follows the exact 8-slide order required by the ANAVANDI selection round brochure.
+
+### 8. Production Readiness & De-congested Modern UI
+* **Clean, Airy UX**: Designed with generous breathing room, 16px rounded surfaces, high-contrast typography, and intuitive single-tier segmented navigation.
+* **3-Step DIY Troubleshooting Guide**: Integrated protocol for toilet dye tests, overhead tank overflow checks, and 15-minute dial sweeps.
 * **Custom Domain & Favicon**: Includes SVG water meter favicon and full DNS configuration documentation.
 * **Compliance Pages**: Complete Privacy Policy (`/privacy`) and Terms of Service (`/terms`).
-* **Design Standards**: Clean engineering aesthetic. No purple gradients, no pill buttons, no fake counters, no emoji icons, and no em dashes.
 
 ---
 
